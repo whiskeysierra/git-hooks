@@ -1,44 +1,43 @@
-# common backup files
-*~
-*.swp
-*.old
-*.bak
-._*
-
-# directory files
-*.directory
-.DS_Store
-
-# eclipse
-.settings
-.buildpath
-.classpath
-.project
-.scala_dependencies
-.pmd
-
-# idea
-.idea
+### IntelliJ ###
+*.iml
 *.ipr
 *.iws
-*.iml
+.idea/
 
-# log files and folders
-logs
-*.log
+### Python ###
+*.py[cod]
 
-# netbeans
-nbproject
-project.xml
+# C extensions
+*.so
 
-# maven
-release.properties
-pom.xml.releaseBackup
+# Packages
+*.egg
+*.egg-info
+dist
+build
+eggs
+parts
+bin
+var
+sdist
+develop-eggs
+.installed.cfg
+lib
+lib64
+__pycache__
 
-# gradle
-/.gradle
+# Installer logs
+pip-log.txt
 
-/build
-/reports
-/target
+# Unit test / coverage reports
+.coverage
+.tox
+nosetests.xml
 
+# Translations
+*.mo
+
+# Mr Developer
+.mr.developer.cfg
+.project
+.pydevproject
