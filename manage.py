@@ -1,13 +1,33 @@
 #!/usr/bin/env python
+# PYTHON_ARGCOMPLETE_OK
+
+from __future__ import print_function, unicode_literals
 
 import argparse
+import git
 import os
 import sys
 
-from clint.textui import colored
+from clint.textui.colored import yellow, green, red
 
+
+def parse():
+    parser = argparse.ArgumentParser(description='Manages all git hooks for the current repository.')
+    commands = parser.add_subparsers(help='commands')
+
+    link = commands.add_parser('link', help='Links the dispatcher to all available git hooks.')
+    link.set_defaults(command='link')
+
+    unlink = commands.add_parser('unlink', help='Unlinks the dispatcher from all available git hooks.')
+    unlink.set_defaults(command='unlink')
+
+    return parser.parse_args()
+
+args = parse()
+
+repo = git.Repo()
+root = repo.working_dir
 current = os.path.dirname(os.path.realpath(__file__))
-parent = os.path.dirname(current)
 
 hooks = [
     'applypatch-msg',
@@ -28,20 +48,13 @@ hooks = [
     'post-rewrite',
 ]
 
-parser = argparse.ArgumentParser(description='Manages all git hooks for the current repository.')
-commands = parser.add_subparsers(help='commands')
-commands.add_parser('install', help='Installs the git hooks.').set_defaults(command='install')
-commands.add_parser('uninstall', help='Uninstalls the git hooks.').set_defaults(command='uninstall')
-
-args = parser.parse_args()
-
 
 def relativize(path):
     return os.path.relpath(path, current)
 
 
 try:
-    hook_directory = os.path.join(parent, '.git', 'hooks')
+    hook_directory = os.path.join(root, '.git', 'hooks')
     dispatcher = os.path.join(current, 'dispatcher')
 
     if not os.path.exists(hook_directory):
@@ -50,7 +63,7 @@ try:
     if not os.path.isdir(hook_directory):
         raise IOError('%s is not a directory' % hook_directory)
 
-    def install():
+    def link():
         for hook in hooks:
             target = os.path.join(hook_directory, hook)
 
@@ -60,17 +73,17 @@ try:
 
             if os.path.exists(target):
                 # exists and is not one of our symlinks, leave it alone!
-                state = colored.yellow('exists')
+                state = yellow('exists')
             else:
                 try:
                     os.symlink(dispatcher, target)
-                    state = colored.green('done')
+                    state = green('done')
                 except OSError:
-                    state = colored.red('failed')
+                    state = red('failed')
 
-            print 'Linking %s to %s [%s]' % (relativize(dispatcher), relativize(target), state)
+            print('Linking %s to %s [%s]' % (relativize(dispatcher), relativize(target), state))
 
-    def uninstall():
+    def unlink():
         for hook in hooks:
             target = os.path.join(hook_directory, hook)
 
@@ -78,21 +91,21 @@ try:
                 try:
                     # we can savely assume, we created it in the first place
                     os.unlink(target)
-                    state = colored.green('done')
+                    state = green('done')
                 except OSError:
-                    state = colored.red('failed')
+                    state = red('failed')
             else:
                 # exists and is not one of our symlinks, leave it alone!
-                state = colored.yellow('skipped')
+                state = yellow('skipped')
 
-            print 'Unlinking %s [%s]' % (relativize(target), state)
+            print('Unlinking %s [%s]' % (relativize(target), state))
 
     def unknown():
         raise Exception('Not yet implemented: %s' % args.command)
 
     mapping = {
-        'install': install,
-        'uninstall': uninstall
+        'link': link,
+        'unlink': unlink
     }
 
     action = mapping.get(args.command, unknown)
