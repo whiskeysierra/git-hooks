@@ -18,8 +18,11 @@ try:
         sys.exit(0)
 
     for path, directories, scripts in os.walk(directory, followlinks=True):
-        for script in scripts:
-            subprocess.call([os.path.join(path, script)])
+        for script in sorted(scripts):
+            code = subprocess.call([os.path.join(path, script)])
+            if code is not 0:
+                sys.exit(code)
+
 
 except Exception, e:
     sys.stderr.write('%s\n' % e)
