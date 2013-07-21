@@ -1,11 +1,8 @@
 # ![Grappling hook](icon.png) Git Hooks [![Build Status](https://travis-ci.org/whiskeysierra/git-hooks-dispatcher.png?branch=master,develop)](http://travis-ci.org/whiskeysierra/git-hooks-dispatcher)
 
-The Git Hooks Dispatcher is a small dispatcher scripts for your git hooks. 
-It runs them for you and allows you to track your hooks together with 
-your source code in your repository under a special directory (`git-hooks`).
-Everything a new contributor needs to do after a `git clone` is:
-
-    git-hooks-dispatcher/manage install
+The Git Hooks is a small tool to simplify the work with git hooks. Git Hooks allows you to treat your git hooks
+like any other source and track them in your repository. Additionally it supports multiple scripts to run
+for the same hook, while plain old git only supports one; this is sometimes referred to as *chaining*.
 
 ## Requirements
 
@@ -16,51 +13,67 @@ To install the required python libraries run:
     sudo pip install -r requirements.txt
 
 ## Installation
+First of all, if you are planning to use Git Hooks on a regular basis, consider installing the corresponding
+[`git dispatcher`](https://github.com/whiskeysierra/git-dispatcher) tool. It's a custom git command which 
+offers a simpler interface to install and manage git hooks in all of your projects.
+
+To install and activate the Git Hooks dispatcher to one of your projects:
+
+    git dispatcher install
+    git dispatcher activate
+    
+or update
+
+    git dispatcher update
+    
+or to deactivate and uninstall
+
+    git dispatcher deactivate
+    git dispatcher uninstall
+    
+For more details about the usage, please see the *Manual installation* section.
+
+### Manual installation
+
 Add the repository as a subtree in your existing repository:
 
-    git subtree add -P git-hooks-dispatcher git@github.com:whiskeysierra/git-hooks-dispatcher.git
+    git subtree add --prefix .git-hooks --squash git@github.com:whiskeysierra/git-hooks.git master
     
-Install the dispatcher
+Optionally, you may add a repository-wide git alias by running:
 
-    git-hooks-dispatcher/manage install
+    .git-hooks/git-hooks.py alias
+    
+This shortens `.git-hooks/git-hooks.py <command>` to `git hooks <command>`.
+    
+The next step: Activate the dispatcher:
+
+    git hook link
 
 Your output should look something like this:
 
-    $ git-hooks-dispatcher/manage install
-    Linking dispatcher to ../.git/hooks/applypatch-msg [done]
-    Linking dispatcher to ../.git/hooks/pre-applypatch [done]
-    Linking dispatcher to ../.git/hooks/post-applypatch [done]
-    Linking dispatcher to ../.git/hooks/pre-commit [done]
-    Linking dispatcher to ../.git/hooks/prepare-commit-msg [done]
-    Linking dispatcher to ../.git/hooks/commit-msg [done]
-    Linking dispatcher to ../.git/hooks/post-commit [done]
-    Linking dispatcher to ../.git/hooks/pre-rebase [done]
-    Linking dispatcher to ../.git/hooks/post-checkout [done]
-    Linking dispatcher to ../.git/hooks/post-merge [done]
-    Linking dispatcher to ../.git/hooks/pre-receive [done]
-    Linking dispatcher to ../.git/hooks/update [done]
-    Linking dispatcher to ../.git/hooks/post-receive [done]
-    Linking dispatcher to ../.git/hooks/post-update [done]
-    Linking dispatcher to ../.git/hooks/pre-auto-gc [done]
-    Linking dispatcher to ../.git/hooks/post-rewrite [done]
+    $ git hooks link
+    Linking .git-hooks/dispatcher.py to .git/hooks/applypatch-msg [done]
+    Linking .git-hooks/dispatcher.py to .git/hooks/pre-applypatch [done]
+    Linking .git-hooks/dispatcher.py to .git/hooks/post-applypatch [done]
+    Linking .git-hooks/dispatcher.py to .git/hooks/pre-commit [done]
+    Linking .git-hooks/dispatcher.py to .git/hooks/prepare-commit-msg [done]
+    Linking .git-hooks/dispatcher.py to .git/hooks/commit-msg [done]
+    Linking .git-hooks/dispatcher.py to .git/hooks/post-commit [done]
+    Linking .git-hooks/dispatcher.py to .git/hooks/pre-rebase [done]
+    Linking .git-hooks/dispatcher.py to .git/hooks/post-checkout [done]
+    Linking .git-hooks/dispatcher.py to .git/hooks/post-merge [done]
+    Linking .git-hooks/dispatcher.py to .git/hooks/pre-receive [done]
+    Linking .git-hooks/dispatcher.py to .git/hooks/update [done]
+    Linking .git-hooks/dispatcher.py to .git/hooks/post-receive [done]
+    Linking .git-hooks/dispatcher.py to .git/hooks/post-update [done]
+    Linking .git-hooks/dispatcher.py to .git/hooks/pre-auto-gc [done]
+    Linking .git-hooks/dispatcher.py to .git/hooks/post-rewrite [done]
     
-The dispatcher is now installed and fully operational. But we didn't create any hooks yet.
+The dispatcher is now installed and fully operational. But we didn't create any hooks yet. You can either create
+a hook manually:
 
     mkdir -p git-hooks/pre-commit.d
-    echo '#!/bin/sh
-    branch=$(git rev-parse --abbrev-ref HEAD)
-        
-    if [ ${branch} == "master" ]; then
-        echo "You must not commit directly on the master branch." 1>&2
-        echo "Stash your changes and apply them to another branch" 1>&2
-        echo "git stash" 1>&2
-        echo "git checkout <feature-xyz>" 1>&2
-        echo "git stash pop" 1>&2
-        exit 1
-    fi' > git-hooks/pre-commit.d/enforce-feature-branch.sh
-   
-We just created a `pre-commit` hook which enforces feature branches by suppressing commits
-on the `master` branch.
+    vi git-hooks/pre-commit.d/my-hook.sh
    
 Basically, you'll need a directory `git-hooks` which contains one directory for each hook type
 (empty directories can be omitted). Please note the `.d` at the end!
@@ -74,33 +87,26 @@ Basically, you'll need a directory `git-hooks` which contains one directory for 
 You may put one or more hooks into each directory, which will then be executed in sequence by the
 dispatcher. To enforce a special ordering, name your scripts e.g. 
 `001-enfore-feature.sh`, `002-check-permissions.sh`, etc.
+    
+Alternatively you may reuse some of the default hooks, shipped with this tool. You can find them in
+[`.git-hooks/defaults`](https://github.com/whiskeysierra/git-hooks/tree/master/defaults).
 
 If you want to pull the latest changes to the dispatcher, run:
 
-    git subtree pull --prefix git-hooks-dispatcher git@github.com:whiskeysierra/git-hooks-dispatcher.git
-
-Feel free to add a handy git alias for the last command to your `.git/config` or `~/.gitconfig` if you
-find the command to noisy. I sure do ;)
-
-    git config --global alias.update-dispatcher 'subtree pull -P git-hooks-dispatcher git@github.com:whiskeysierra/git-hooks-dispatcher.git master'
-    git config --global alias.install-dispatcher 'subtree add -P git-hooks-dispatcher git@github.com:whiskeysierra/git-hooks-dispatcher.git master'
-
-You can now install and update the dispatcher in any of your projects with:
-
-    git install-dispatcher
-    git update-dispatcher
+    git subtree pull --prefix .git-hooks --squash git@github.com:whiskeysierra/git-hooks-dispatcher.git master
 
 ## Uninstall
 
 To uninstall the dispatcher, use:
 
-    git-hooks-dispatcher/manage uninstall
+    git hooks unalias
+    git hooks unlink
     
 Which will remove all symlinks created by the dispatcher. Existing files or old symlinks will be left as-is.
 You can now remove the subtree and commit the changes to your repository.
 
-    git rm -r git-hooks-dispatcher
-    git commit -m "Removed Git Hooks Dispatcher"
+    git rm -r .git-hooks
+    git commit -m "Removed Git Hooks"
 
 ## Contributing
 
@@ -108,12 +114,14 @@ The easiest way to contribute is use the dispatcher in your project and if you s
 or add a feature, you can just do so and commit patches to the subtree in your repository. To push the 
 changes back you'll need a fork and replace the origin url in the `git subtree` command with your own:
 
-    git subtree push --prefix git-hooks-dispatcher git@github.com:username/git-hooks-dispatcher.git
+    git subtree push --prefix .git-hooks git@github.com:username/git-hooks.git
     
 You can than just open a pull-request, which will be highly appreciated.
 
-## Attributions/Links
-The Grappling Hook icon was found on [http://ztreasureisle.wikia.com/](http://ztreasureisle.wikia.com/wiki/File:NinjaGear_Grappling_Hook-icon.png).
+## Attributions
+![Creative Commons License](http://i.creativecommons.org/l/by-sa/3.0/80x15.png)
+Hook shot photo by [Rick Dikeman](http://commons.wikimedia.org/wiki/File:Basketball.jpg) is licensed under a
+[Creative Commons (Attribution-ShareAlike 3.0 Unported)](http://creativecommons.org/licenses/by-sa/3.0/).
 
 A good tutorial on the `git subtree` command can be found 
 [here](http://blogs.atlassian.com/2013/05/alternatives-to-git-submodule-git-subtree/).
