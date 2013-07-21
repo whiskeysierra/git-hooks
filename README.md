@@ -1,4 +1,4 @@
-# ![Grappling hook](https://raw.github.com/whiskeysierra/git-hooks-dispatcher/master/icon.png) Git Hooks Dispatcher [![Build Status](https://travis-ci.org/whiskeysierra/git-hooks-dispatcher.png?branch=master)](http://travis-ci.org/whiskeysierra/git-hooks-dispatcher)
+# ![Grappling hook](icon.png) Git Hooks [![Build Status](https://travis-ci.org/whiskeysierra/git-hooks-dispatcher.png?branch=master,develop)](http://travis-ci.org/whiskeysierra/git-hooks-dispatcher)
 
 The Git Hooks Dispatcher is a small dispatcher scripts for your git hooks. 
 It runs them for you and allows you to track your hooks together with 
